@@ -6,7 +6,7 @@
   "description": "Install private, organization-specific skills for Cursor and Claude Code",
   "type": "module",
   "bin": {
-    "lorekeeper": "./dist/index.js"
+    "lorekeeper": "dist/index.js"
   },
   "files": [
     "dist"
