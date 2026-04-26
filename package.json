@@ -1,0 +1,28 @@
+{
+  "name": "lorekeeper",
+  "version": "1.0.0",
+  "license": "MIT",
+  "author": "Nicolas Baglivo <nicolas.baglivo@gmail.com>",
+  "description": "Install private, organization-specific skills for Cursor and Claude Code",
+  "type": "module",
+  "bin": {
+    "lorekeeper": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@clack/prompts": "^0.9.0",
+    "commander": "^12.0.0",
+    "execa": "^9.0.0",
+    "gray-matter": "^4.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^3.0.0"
+  }
+}
