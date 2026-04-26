@@ -1,12 +1,12 @@
 # Lorekeeper
 
-> Install private, organization-specific skills for Cursor and Claude Code directly from a GitHub repository.
+> Distribute private, org-specific AI coding skills across your team via a GitHub repository.
 
 ## Why
 
-Teams accumulate best practices, coding conventions, and workflows that are specific to their stack and ways of working. Most AI coding tools support custom skills or rules — but sharing them means either making them public or managing files by hand across every developer machine.
+Organisations build up best practices, coding conventions, and workflows that are specific to their stack and ways of working. AI coding tools like Cursor and Claude Code can be guided by custom skills — but distributing those skills means either making them public or managing files by hand across every developer machine.
 
-Lorekeeper solves this by letting you host skills in a private GitHub repository and install them with a single command. The right guidance lands in the right tool, stays private, and stays in sync.
+Lorekeeper solves this by letting your organisation host skills in a private GitHub repository and install them with a single command. Skills stay inside your org, reach every developer instantly, and land in the right tool automatically.
 
 ## Prerequisites
 
