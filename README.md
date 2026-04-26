@@ -23,6 +23,14 @@ gh auth login
 npm install -g lorekeeper
 ```
 
+Or use it without installing via `npx`:
+
+```bash
+npx lorekeeper config
+npx lorekeeper list
+npx lorekeeper add <skill-name>
+```
+
 ## Setup
 
 Point Lorekeeper at your skills repository:
