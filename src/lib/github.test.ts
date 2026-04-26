@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { isGhInstalled, isGhAuthenticated, fetchSkillFiles } from './github.js';
+import { isGhInstalled, isGhAuthenticated, fetchSkillFiles, fetchSkillEntries } from './github.js';
 
 vi.mock('execa', () => ({
   execa: vi.fn(),
@@ -43,6 +43,80 @@ describe('isGhAuthenticated', () => {
   it('returns false when gh is not authenticated', async () => {
     mockedExeca.mockRejectedValueOnce(new Error('not logged into any GitHub hosts'));
     expect(await isGhAuthenticated()).toBe(false);
+  });
+});
+
+describe('fetchSkillEntries', () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it('returns an entry for each skill directory with its SKILL.md content', async () => {
+    const skillsListing = [
+      { type: 'dir', name: 'code-review', path: 'skills/code-review' },
+      { type: 'dir', name: 'typescript', path: 'skills/typescript' },
+    ];
+
+    mockedExeca
+      .mockResolvedValueOnce({ stdout: JSON.stringify(skillsListing) } as any)
+      .mockResolvedValueOnce(makeFileResponse('# Code Review') as any)
+      .mockResolvedValueOnce(makeFileResponse('# TypeScript') as any);
+
+    const entries = await fetchSkillEntries('acme-org/skills');
+
+    expect(entries).toHaveLength(2);
+    expect(entries[0]).toEqual({ name: 'code-review', skillMdContent: '# Code Review' });
+    expect(entries[1]).toEqual({ name: 'typescript', skillMdContent: '# TypeScript' });
+  });
+
+  it('skips file entries at the skills root level', async () => {
+    const skillsListing = [
+      { type: 'dir', name: 'code-review', path: 'skills/code-review' },
+      { type: 'file', name: 'README.md', path: 'skills/README.md' },
+    ];
+
+    mockedExeca
+      .mockResolvedValueOnce({ stdout: JSON.stringify(skillsListing) } as any)
+      .mockResolvedValueOnce(makeFileResponse('# Code Review') as any);
+
+    const entries = await fetchSkillEntries('acme-org/skills');
+
+    expect(entries).toHaveLength(1);
+    expect(entries[0].name).toBe('code-review');
+  });
+
+  it('sets skillMdContent to null when SKILL.md is missing', async () => {
+    const skillsListing = [
+      { type: 'dir', name: 'broken-skill', path: 'skills/broken-skill' },
+    ];
+
+    mockedExeca
+      .mockResolvedValueOnce({ stdout: JSON.stringify(skillsListing) } as any)
+      .mockRejectedValueOnce(Object.assign(new Error('Not Found'), { stderr: 'Not Found (HTTP 404)' }));
+
+    const entries = await fetchSkillEntries('acme-org/skills');
+
+    expect(entries).toHaveLength(1);
+    expect(entries[0]).toEqual({ name: 'broken-skill', skillMdContent: null });
+  });
+
+  it('calls the API with the correct paths', async () => {
+    const skillsListing = [
+      { type: 'dir', name: 'auth', path: 'skills/auth' },
+    ];
+
+    mockedExeca
+      .mockResolvedValueOnce({ stdout: JSON.stringify(skillsListing) } as any)
+      .mockResolvedValueOnce(makeFileResponse('content') as any);
+
+    await fetchSkillEntries('my-org/my-repo');
+
+    expect(mockedExeca).toHaveBeenNthCalledWith(1, 'gh', [
+      'api',
+      'repos/my-org/my-repo/contents/skills',
+    ]);
+    expect(mockedExeca).toHaveBeenNthCalledWith(2, 'gh', [
+      'api',
+      'repos/my-org/my-repo/contents/skills/auth/SKILL.md',
+    ]);
   });
 });
 

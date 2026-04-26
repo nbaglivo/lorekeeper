@@ -33,13 +33,19 @@ lorekeeper config
 
 This creates `~/.lorekeeper/config.json` with your repository reference.
 
-## Usage
+## Commands
 
-```bash
-lorekeeper add <skill-name>
-```
+### `lorekeeper config`
 
-Fetches the entire `skills/<skill-name>/` folder from your configured repository and installs it to the correct location based on the skill's `compatibility` field.
+Configure the repository to pull skills from. Creates `~/.lorekeeper/config.json`.
+
+### `lorekeeper list`
+
+List all skills available in the configured repository, with their description and compatibility.
+
+### `lorekeeper add <skill-name>`
+
+Fetch and install a skill into the current project. Copies the entire `skills/<skill-name>/` folder to the correct location based on the skill's `compatibility` field.
 
 ## Skill repository format
 

@@ -1,6 +1,7 @@
 import { Command } from 'commander';
 import { configCommand } from './commands/config.js';
 import { addCommand } from './commands/add.js';
+import { listCommand } from './commands/list.js';
 
 export function createCli(): Command {
   const program = new Command();
@@ -19,6 +20,11 @@ export function createCli(): Command {
     .command('add <skill-name>')
     .description('Fetch and install a skill from the configured repository')
     .action(addCommand);
+
+  program
+    .command('list')
+    .description('List all available skills in the configured repository')
+    .action(listCommand);
 
   return program;
 }

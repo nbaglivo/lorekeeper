@@ -35,6 +35,39 @@ interface GhFileResponse {
   encoding: string;
 }
 
+export interface SkillEntry {
+  name: string;
+  skillMdContent: string | null;
+}
+
+export async function fetchSkillEntries(repo: string): Promise<SkillEntry[]> {
+  const { stdout: dirJson } = await execa('gh', [
+    'api',
+    `repos/${repo}/contents/skills`,
+  ]);
+
+  const items: GhContentItem[] = JSON.parse(dirJson);
+  const skillDirs = items.filter((item) => item.type === 'dir');
+
+  const entries: SkillEntry[] = [];
+
+  for (const dir of skillDirs) {
+    try {
+      const { stdout: fileJson } = await execa('gh', [
+        'api',
+        `repos/${repo}/contents/${dir.path}/SKILL.md`,
+      ]);
+      const fileData: GhFileResponse = JSON.parse(fileJson);
+      const content = Buffer.from(fileData.content.replace(/\s/g, ''), 'base64').toString('utf-8');
+      entries.push({ name: dir.name, skillMdContent: content });
+    } catch {
+      entries.push({ name: dir.name, skillMdContent: null });
+    }
+  }
+
+  return entries;
+}
+
 export async function fetchSkillFiles(repo: string, skillName: string): Promise<RemoteFile[]> {
   const dirPath = `skills/${skillName}`;
 
