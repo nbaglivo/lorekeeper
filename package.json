@@ -30,5 +30,20 @@
     "tsup": "^8.0.0",
     "typescript": "^5.0.0",
     "vitest": "^3.0.0"
-  }
+  },
+  "homepage": "https://github.com/nbaglivo/lorekeeper#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nbaglivo/lorekeeper.git"
+  },
+  "bugs": {
+    "url": "https://github.com/nbaglivo/lorekeeper/issues"
+  },
+  "keywords": [
+    "ai",
+    "skills",
+    "cursor",
+    "claude",
+    "cli"
+  ]
 }
