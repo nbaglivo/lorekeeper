@@ -1,5 +1,12 @@
 # Changelog
 
+# [1.3.0](https://github.com/nbaglivo/lorekeeper/compare/v1.2.0...v1.3.0) (2026-04-27)
+
+
+### Features
+
+* add lore.json cross-repo skill registry with external source validation ([b6a7266](https://github.com/nbaglivo/lorekeeper/commit/b6a72665ae64fff7250098793d17f28d90de8939))
+
 # [1.2.0](https://github.com/nbaglivo/lorekeeper/compare/v1.1.3...v1.2.0) (2026-04-27)
 
 
