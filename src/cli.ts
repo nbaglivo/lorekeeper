@@ -19,6 +19,7 @@ export function createCli(): Command {
   program
     .command('add <skill-name>')
     .description('Fetch and install a skill from the configured repository')
+    .option('--global', 'Install to ~/.claude/skills or ~/.cursor/skills instead of the current project')
     .action(addCommand);
 
   program

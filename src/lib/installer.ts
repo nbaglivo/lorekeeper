@@ -1,5 +1,6 @@
 import { mkdir, writeFile } from 'fs/promises';
 import { join } from 'path';
+import { homedir } from 'os';
 import matter from 'gray-matter';
 import type { RemoteFile } from './github.js';
 
@@ -37,23 +38,24 @@ function parseSkillMeta(skillMdContent: string): { meta: SkillMeta; warning?: st
   };
 }
 
-function getDestinations(compatibility: Compatibility, skillName: string): string[] {
-  const cwd = process.cwd();
+function getDestinations(compatibility: Compatibility, skillName: string, global: boolean): string[] {
+  const base = global ? homedir() : process.cwd();
   if (compatibility === 'claude-code') {
-    return [join(cwd, '.claude', 'skills', skillName)];
+    return [join(base, '.claude', 'skills', skillName)];
   }
   if (compatibility === 'cursor') {
-    return [join(cwd, '.cursor', 'skills', skillName)];
+    return [join(base, '.cursor', 'skills', skillName)];
   }
   return [
-    join(cwd, '.claude', 'skills', skillName),
-    join(cwd, '.cursor', 'skills', skillName),
+    join(base, '.claude', 'skills', skillName),
+    join(base, '.cursor', 'skills', skillName),
   ];
 }
 
 export async function installSkill(
   skillName: string,
-  files: RemoteFile[]
+  files: RemoteFile[],
+  options: { global?: boolean } = {}
 ): Promise<{ destinations: string[]; meta: SkillMeta; warning?: string }> {
   const skillMd = files.find((f) => f.name === 'SKILL.md');
   if (!skillMd) {
@@ -61,7 +63,7 @@ export async function installSkill(
   }
 
   const { meta, warning } = parseSkillMeta(skillMd.content);
-  const destinations = getDestinations(meta.compatibility, skillName);
+  const destinations = getDestinations(meta.compatibility, skillName, options.global ?? false);
 
   for (const destDir of destinations) {
     await mkdir(destDir, { recursive: true });

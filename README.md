@@ -55,6 +55,12 @@ List all skills available in the configured repository, with their description a
 
 Fetch and install a skill into the current project. Copies the entire `skills/<skill-name>/` folder to the correct location based on the skill's `compatibility` field.
 
+By default, skills are installed relative to the current working directory. Use `--global` to install to your home directory instead:
+
+```bash
+lorekeeper add <skill-name> --global
+```
+
 ## Skill repository format
 
 Skills live in your GitHub repository under:
@@ -82,10 +88,12 @@ compatibility: claude-code   # claude-code | cursor | both
 
 | `compatibility` | Installed to |
 |---|---|
-| `claude-code` | `.claude/skills/<skill-name>/` |
-| `cursor` | `.cursor/skills/<skill-name>/` |
-| `both` | Both of the above |
+| `compatibility` | Local | Global (`--global`) |
+|---|---|---|
+| `claude-code` | `.claude/skills/<skill-name>/` | `~/.claude/skills/<skill-name>/` |
+| `cursor` | `.cursor/skills/<skill-name>/` | `~/.cursor/skills/<skill-name>/` |
+| `both` | Both local paths | Both global paths |
 
-Paths are relative to the directory where you run `lorekeeper add`.
+Local paths are relative to the directory where you run `lorekeeper add`.
 
 If `compatibility` is missing or set to an unrecognised value, Lorekeeper will warn you and install to both destinations.

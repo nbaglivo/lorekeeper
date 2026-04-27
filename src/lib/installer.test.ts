@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { homedir } from 'os';
 import { installSkill } from './installer.js';
 import type { RemoteFile } from './github.js';
 
@@ -63,6 +64,33 @@ describe('installSkill', () => {
       expect(destinations).toContain('/project/.claude/skills/test-skill');
       expect(destinations).toContain('/project/.cursor/skills/test-skill');
       expect(mockedMkdir).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('global flag', () => {
+    it('installs to ~/.claude/skills when global and claude-code', async () => {
+      const { destinations } = await installSkill('test-skill', skillFile('claude-code'), { global: true });
+
+      expect(destinations).toEqual([`${homedir()}/.claude/skills/test-skill`]);
+    });
+
+    it('installs to ~/.cursor/skills when global and cursor', async () => {
+      const { destinations } = await installSkill('test-skill', skillFile('cursor'), { global: true });
+
+      expect(destinations).toEqual([`${homedir()}/.cursor/skills/test-skill`]);
+    });
+
+    it('installs to both home directories when global and both', async () => {
+      const { destinations } = await installSkill('test-skill', skillFile('both'), { global: true });
+
+      expect(destinations).toContain(`${homedir()}/.claude/skills/test-skill`);
+      expect(destinations).toContain(`${homedir()}/.cursor/skills/test-skill`);
+    });
+
+    it('uses project paths when global is not set', async () => {
+      const { destinations } = await installSkill('test-skill', skillFile('claude-code'));
+
+      expect(destinations).toEqual(['/project/.claude/skills/test-skill']);
     });
   });
 

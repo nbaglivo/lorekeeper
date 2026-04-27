@@ -3,8 +3,8 @@ import { readConfig } from '../lib/config.js';
 import { isGhInstalled, isGhAuthenticated, fetchSkillFiles } from '../lib/github.js';
 import { installSkill } from '../lib/installer.js';
 
-export async function addCommand(skillName: string): Promise<void> {
-  p.intro(`Lorekeeper — add "${skillName}"`);
+export async function addCommand(skillName: string, options: { global?: boolean } = {}): Promise<void> {
+  p.intro(`Lorekeeper — add "${skillName}"${options.global ? ' (global)' : ''}`);
 
   const config = await readConfig();
   if (!config) {
@@ -43,7 +43,7 @@ export async function addCommand(skillName: string): Promise<void> {
   spinner.stop(`Fetched ${files.length} file(s)`);
 
   try {
-    const { destinations, meta, warning } = await installSkill(skillName, files);
+    const { destinations, meta, warning } = await installSkill(skillName, files, options);
     if (warning) p.log.warn(warning);
     for (const dest of destinations) {
       p.log.success(`Installed → ${dest}`);
