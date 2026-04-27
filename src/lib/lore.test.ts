@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { fetchLoreConfig, parseGitHubSkillUrl } from './lore.js';
+import { fetchLoreConfig, parseGitHubRepoUrl } from './lore.js';
 
 vi.mock('execa', () => ({
   execa: vi.fn(),
@@ -31,7 +31,7 @@ describe('fetchLoreConfig', () => {
 
   it('returns parsed config when lore.json exists', async () => {
     const loreConfig = {
-      skills: { 'my-skill': 'https://github.com/org/repo/tree/main/skills/my-skill' },
+      skills: { 'find-skills': 'https://github.com/vercel-labs/skills' },
     };
     mockedExeca.mockResolvedValueOnce(makeLoreResponse(loreConfig) as any);
 
@@ -53,37 +53,30 @@ describe('fetchLoreConfig', () => {
   });
 });
 
-describe('parseGitHubSkillUrl', () => {
-  it('parses a valid GitHub tree URL', () => {
-    const result = parseGitHubSkillUrl(
-      'https://github.com/other-org/their-repo/tree/main/skills/code-review'
-    );
-    expect(result).toEqual({ repo: 'other-org/their-repo', path: 'skills/code-review' });
+describe('parseGitHubRepoUrl', () => {
+  it('parses a GitHub repo URL', () => {
+    expect(parseGitHubRepoUrl('https://github.com/vercel-labs/skills')).toBe('vercel-labs/skills');
   });
 
-  it('handles nested paths', () => {
-    const result = parseGitHubSkillUrl(
-      'https://github.com/org/repo/tree/develop/folder/sub/skill'
-    );
-    expect(result).toEqual({ repo: 'org/repo', path: 'folder/sub/skill' });
-  });
-
-  it('handles non-main branch names', () => {
-    const result = parseGitHubSkillUrl(
-      'https://github.com/org/repo/tree/develop/skills/tool'
-    );
-    expect(result).toEqual({ repo: 'org/repo', path: 'skills/tool' });
+  it('handles a trailing slash', () => {
+    expect(parseGitHubRepoUrl('https://github.com/vercel-labs/skills/')).toBe('vercel-labs/skills');
   });
 
   it('throws on a non-GitHub URL', () => {
-    expect(() => parseGitHubSkillUrl('https://gitlab.com/org/repo/skills/skill')).toThrow(
-      'Invalid GitHub skill URL'
+    expect(() => parseGitHubRepoUrl('https://gitlab.com/org/repo')).toThrow(
+      'Invalid GitHub repo URL'
     );
   });
 
-  it('throws on a GitHub URL without /tree/ segment', () => {
-    expect(() => parseGitHubSkillUrl('https://github.com/org/repo')).toThrow(
-      'Invalid GitHub skill URL'
+  it('throws on a GitHub URL with no repo path', () => {
+    expect(() => parseGitHubRepoUrl('https://github.com/org')).toThrow(
+      'Invalid GitHub repo URL'
     );
+  });
+
+  it('throws when extra path segments are present', () => {
+    expect(() =>
+      parseGitHubRepoUrl('https://github.com/vercel-labs/skills/find-skills')
+    ).toThrow('Invalid GitHub repo URL');
   });
 });

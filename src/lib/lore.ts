@@ -24,12 +24,12 @@ export async function fetchLoreConfig(repo: string): Promise<LoreConfig | null> 
   }
 }
 
-export function parseGitHubSkillUrl(url: string): { repo: string; path: string } {
-  const match = /^https:\/\/github\.com\/([^/]+\/[^/]+)\/tree\/[^/]+\/(.+)$/.exec(url);
+export function parseGitHubRepoUrl(url: string): string {
+  const match = /^https:\/\/github\.com\/([^/]+\/[^/]+?)\/?$/.exec(url);
   if (!match) {
     throw new Error(
-      `Invalid GitHub skill URL: "${url}"\nExpected: https://github.com/owner/repo/tree/branch/path/to/skill`
+      `Invalid GitHub repo URL: "${url}"\nExpected: https://github.com/owner/repo`
     );
   }
-  return { repo: match[1], path: match[2] };
+  return match[1];
 }

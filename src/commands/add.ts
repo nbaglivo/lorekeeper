@@ -2,7 +2,7 @@ import * as p from '@clack/prompts';
 import { assertPreflight } from '../lib/preflight.js';
 import { fetchSkillFiles, fetchSkillFilesFromPath, type RemoteFile } from '../lib/github.js';
 import { installSkill, validateRemoteSkillMeta } from '../lib/installer.js';
-import { fetchLoreConfig, parseGitHubSkillUrl } from '../lib/lore.js';
+import { fetchLoreConfig, parseGitHubRepoUrl } from '../lib/lore.js';
 
 function isNotFound(err: unknown): boolean {
   const stderr = (err as { stderr?: string }).stderr ?? '';
@@ -43,19 +43,19 @@ export async function addCommand(skillName: string, options: { global?: boolean 
 
     loreUrl = lore.skills[skillName];
 
-    let parsed: { repo: string; path: string };
+    let externalRepo: string;
     try {
-      parsed = parseGitHubSkillUrl(loreUrl);
+      externalRepo = parseGitHubRepoUrl(loreUrl);
     } catch (parseErr: unknown) {
       spinner.stop('Invalid lore.json URL');
       p.log.error((parseErr as Error).message);
       process.exit(1);
     }
 
-    spinner.message(`Fetching "${skillName}" from ${parsed.repo} (via lore.json)`);
+    spinner.message(`Fetching "${skillName}" from ${externalRepo} (via lore.json)`);
 
     try {
-      files = await fetchSkillFilesFromPath(parsed.repo, parsed.path);
+      files = await fetchSkillFilesFromPath(externalRepo, `skills/${skillName}`);
     } catch (fetchErr: unknown) {
       spinner.stop('Fetch failed');
       p.log.error(`Could not fetch from external source.\n${(fetchErr as Error).message ?? ''}`);

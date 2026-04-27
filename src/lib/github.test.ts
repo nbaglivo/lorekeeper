@@ -120,7 +120,7 @@ describe('fetchSkillEntries', () => {
   it('returns lore entries with source: "lore" when lore.json exists', async () => {
     const skillsListing: never[] = [];
     const loreConfig = {
-      skills: { 'external-skill': 'https://github.com/org/repo/tree/main/skills/external-skill' },
+      skills: { 'external-skill': 'https://github.com/org/agent-skills' },
     };
     const loreContent = Buffer.from(JSON.stringify(loreConfig)).toString('base64');
 
@@ -137,13 +137,13 @@ describe('fetchSkillEntries', () => {
       name: 'external-skill',
       skillMdContent: null,
       source: 'lore',
-      loreUrl: 'https://github.com/org/repo/tree/main/skills/external-skill',
+      loreUrl: 'https://github.com/org/agent-skills',
     });
   });
 
   it('returns both repo and lore entries when both are present', async () => {
     const skillsListing = [{ type: 'dir', name: 'local-skill', path: 'skills/local-skill' }];
-    const loreConfig = { skills: { 'remote-skill': 'https://github.com/org/repo/tree/main/skills/remote-skill' } };
+    const loreConfig = { skills: { 'remote-skill': 'https://github.com/org/agent-skills' } };
     const loreContent = Buffer.from(JSON.stringify(loreConfig)).toString('base64');
 
     mockedExeca

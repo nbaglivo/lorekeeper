@@ -49,11 +49,11 @@ Configure the repository to pull skills from. Creates `~/.lorekeeper/config.json
 
 ### `lorekeeper list`
 
-List all skills available in the configured repository, with their description and compatibility.
+List all skills available in the configured repository. Skills defined directly in the repo and skills referenced via `lore.json` are shown in separate sections.
 
 ### `lorekeeper add <skill-name>`
 
-Fetch and install a skill into the current project. Copies the entire `skills/<skill-name>/` folder to the correct location based on the skill's `compatibility` field.
+Fetch and install a skill into the current project. First looks for the skill in `skills/<skill-name>/` of your configured repository. If not found there, falls back to `lore.json` (see below).
 
 By default, skills are installed relative to the current working directory. Use `--global` to install to your home directory instead:
 
@@ -67,9 +67,10 @@ Skills live in your GitHub repository under:
 
 ```
 skills/
-└── <skill-name>/
-    ├── SKILL.md        ← required — frontmatter declares the skill metadata
-    └── ...             ← any additional files are installed alongside it
+├── <skill-name>/
+│   ├── SKILL.md        ← required — frontmatter declares the skill metadata
+│   └── ...             ← any additional files are installed alongside it
+└── lore.json           ← optional — references skills hosted in other repos
 ```
 
 **`SKILL.md` frontmatter:**
@@ -84,10 +85,24 @@ compatibility: claude-code   # claude-code | cursor | both
 # Skill content goes here...
 ```
 
+## lore.json — cross-repo skills
+
+`lore.json` is an optional file in the `skills/` folder that lets organisations curate a list of external skills they want to promote across their teams. Rather than forking or copying third-party skills into your own repo, you point to them by URL and Lorekeeper handles the rest. When `lorekeeper add` can't find a skill locally, it checks this file.
+
+```json
+{
+  "skills": {
+    "find-skills": "https://github.com/vercel-labs/skills"
+  }
+}
+```
+
+The value is the GitHub repo URL. Lorekeeper looks for the skill at `skills/<skill-name>/` inside that repository, following the same convention. When a skill is installed from `lore.json`, the source URL is shown prominently in the output.
+
+External skills must have a valid `SKILL.md` with both `name` and `description` fields — Lorekeeper validates this before installing.
+
 ## Install destinations
 
-| `compatibility` | Installed to |
-|---|---|
 Every install always writes to `.agents/skills/<skill-name>/` in addition to the tool-specific paths below.
 
 | `compatibility` | Local | Global (`--global`) |
@@ -98,4 +113,4 @@ Every install always writes to `.agents/skills/<skill-name>/` in addition to the
 
 Local paths are relative to the directory where you run `lorekeeper add`.
 
-If `compatibility` is missing or set to an unrecognised value, Lorekeeper will warn you and install to both destinations.
+If `compatibility` is missing or set to an unrecognised value, Lorekeeper will warn you and install to all destinations.
