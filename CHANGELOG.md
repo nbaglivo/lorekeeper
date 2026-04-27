@@ -1,5 +1,12 @@
 # Changelog
 
+# [1.4.0](https://github.com/nbaglivo/lorekeeper/compare/v1.3.0...v1.4.0) (2026-04-27)
+
+
+### Features
+
+* simplify lore.json URL to repo-only format, derive skill path from skill name ([ef28cd7](https://github.com/nbaglivo/lorekeeper/commit/ef28cd72dbd963637e464b2d956de7c3b94a1dcb))
+
 # [1.3.0](https://github.com/nbaglivo/lorekeeper/compare/v1.2.0...v1.3.0) (2026-04-27)
 
 

@@ -1,6 +1,6 @@
 {
   "name": "lorekeeper",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "license": "MIT",
   "author": "Nicolas Baglivo <nicolas.baglivo@gmail.com>",
   "description": "Install private, organization-specific skills for Cursor and Claude Code",
