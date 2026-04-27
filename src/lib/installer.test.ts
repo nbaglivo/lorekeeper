@@ -43,89 +43,92 @@ describe('installSkill', () => {
   });
 
   describe('install destinations', () => {
-    it('installs to .claude/skills for claude-code compatibility', async () => {
+    it('installs to .claude/skills and .agents/skills for claude-code compatibility', async () => {
       const { destinations } = await installSkill('test-skill', skillFile('claude-code'));
 
-      expect(destinations).toEqual(['/project/.claude/skills/test-skill']);
-      expect(mockedMkdir).toHaveBeenCalledWith('/project/.claude/skills/test-skill', { recursive: true });
+      expect(destinations).toEqual([
+        '/project/.claude/skills/test-skill',
+        '/project/.agents/skills/test-skill',
+      ]);
     });
 
-    it('installs to .cursor/skills for cursor compatibility', async () => {
+    it('installs to .cursor/skills and .agents/skills for cursor compatibility', async () => {
       const { destinations } = await installSkill('test-skill', skillFile('cursor'));
 
-      expect(destinations).toEqual(['/project/.cursor/skills/test-skill']);
-      expect(mockedMkdir).toHaveBeenCalledWith('/project/.cursor/skills/test-skill', { recursive: true });
+      expect(destinations).toEqual([
+        '/project/.cursor/skills/test-skill',
+        '/project/.agents/skills/test-skill',
+      ]);
     });
 
-    it('installs to both destinations for "both" compatibility', async () => {
+    it('installs to all three destinations for "both" compatibility', async () => {
       const { destinations } = await installSkill('test-skill', skillFile('both'));
 
-      expect(destinations).toHaveLength(2);
-      expect(destinations).toContain('/project/.claude/skills/test-skill');
-      expect(destinations).toContain('/project/.cursor/skills/test-skill');
-      expect(mockedMkdir).toHaveBeenCalledTimes(2);
+      expect(destinations).toEqual([
+        '/project/.claude/skills/test-skill',
+        '/project/.cursor/skills/test-skill',
+        '/project/.agents/skills/test-skill',
+      ]);
+      expect(mockedMkdir).toHaveBeenCalledTimes(3);
     });
   });
 
   describe('global flag', () => {
-    it('installs to ~/.claude/skills when global and claude-code', async () => {
+    it('installs to home directories for claude-code', async () => {
       const { destinations } = await installSkill('test-skill', skillFile('claude-code'), { global: true });
 
-      expect(destinations).toEqual([`${homedir()}/.claude/skills/test-skill`]);
+      expect(destinations).toEqual([
+        `${homedir()}/.claude/skills/test-skill`,
+        `${homedir()}/.agents/skills/test-skill`,
+      ]);
     });
 
-    it('installs to ~/.cursor/skills when global and cursor', async () => {
+    it('installs to home directories for cursor', async () => {
       const { destinations } = await installSkill('test-skill', skillFile('cursor'), { global: true });
 
-      expect(destinations).toEqual([`${homedir()}/.cursor/skills/test-skill`]);
+      expect(destinations).toEqual([
+        `${homedir()}/.cursor/skills/test-skill`,
+        `${homedir()}/.agents/skills/test-skill`,
+      ]);
     });
 
-    it('installs to both home directories when global and both', async () => {
+    it('installs to all three home directories for both', async () => {
       const { destinations } = await installSkill('test-skill', skillFile('both'), { global: true });
 
-      expect(destinations).toContain(`${homedir()}/.claude/skills/test-skill`);
-      expect(destinations).toContain(`${homedir()}/.cursor/skills/test-skill`);
+      expect(destinations).toEqual([
+        `${homedir()}/.claude/skills/test-skill`,
+        `${homedir()}/.cursor/skills/test-skill`,
+        `${homedir()}/.agents/skills/test-skill`,
+      ]);
     });
 
     it('uses project paths when global is not set', async () => {
       const { destinations } = await installSkill('test-skill', skillFile('claude-code'));
 
-      expect(destinations).toEqual(['/project/.claude/skills/test-skill']);
+      expect(destinations).toContain('/project/.claude/skills/test-skill');
+      expect(destinations).toContain('/project/.agents/skills/test-skill');
     });
   });
 
   describe('file writing', () => {
-    it('writes all files to the destination directory', async () => {
-      const files = skillFile('claude-code', { 'guide.md': '# Guide', 'example.ts': 'const x = 1' });
+    it('writes all files to every destination', async () => {
+      const files = skillFile('claude-code', { 'guide.md': '# Guide' });
 
       await installSkill('test-skill', files);
 
-      expect(mockedWriteFile).toHaveBeenCalledWith(
-        '/project/.claude/skills/test-skill/SKILL.md',
-        expect.any(String),
-        'utf-8'
-      );
-      expect(mockedWriteFile).toHaveBeenCalledWith(
-        '/project/.claude/skills/test-skill/guide.md',
-        '# Guide',
-        'utf-8'
-      );
-      expect(mockedWriteFile).toHaveBeenCalledWith(
-        '/project/.claude/skills/test-skill/example.ts',
-        'const x = 1',
-        'utf-8'
-      );
+      for (const dest of ['/project/.claude/skills/test-skill', '/project/.agents/skills/test-skill']) {
+        expect(mockedWriteFile).toHaveBeenCalledWith(`${dest}/SKILL.md`, expect.any(String), 'utf-8');
+        expect(mockedWriteFile).toHaveBeenCalledWith(`${dest}/guide.md`, '# Guide', 'utf-8');
+      }
     });
 
-    it('writes all files to every destination when compatibility is "both"', async () => {
+    it('writes all files to all three destinations when compatibility is "both"', async () => {
       await installSkill('test-skill', skillFile('both', { 'extra.md': '# Extra' }));
 
       const writeCalls = mockedWriteFile.mock.calls.map((c) => c[0] as string);
-      const claudeCalls = writeCalls.filter((p) => p.includes('.claude'));
-      const cursorCalls = writeCalls.filter((p) => p.includes('.cursor'));
-
-      expect(claudeCalls).toHaveLength(2);
-      expect(cursorCalls).toHaveLength(2);
+      expect(writeCalls.filter((p) => p.includes('.claude'))).toHaveLength(2);
+      expect(writeCalls.filter((p) => p.includes('.cursor'))).toHaveLength(2);
+      expect(writeCalls.filter((p) => p.includes('.agents'))).toHaveLength(2);
     });
   });
 
@@ -143,14 +146,14 @@ describe('installSkill', () => {
     it('defaults to "both" and returns a warning when compatibility is an unknown value', async () => {
       const { destinations, warning } = await installSkill('test-skill', skillFile('vscode'));
 
-      expect(destinations).toHaveLength(2);
+      expect(destinations).toHaveLength(3);
       expect(warning).toMatch(/unknown compatibility "vscode"/i);
     });
 
     it('defaults to "both" and returns a warning when compatibility is missing', async () => {
       const { destinations, warning } = await installSkill('test-skill', skillFile(null));
 
-      expect(destinations).toHaveLength(2);
+      expect(destinations).toHaveLength(3);
       expect(warning).toMatch(/no compatibility field/i);
     });
 

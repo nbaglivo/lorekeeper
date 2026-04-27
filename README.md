@@ -88,11 +88,13 @@ compatibility: claude-code   # claude-code | cursor | both
 
 | `compatibility` | Installed to |
 |---|---|
+Every install always writes to `.agents/skills/<skill-name>/` in addition to the tool-specific paths below.
+
 | `compatibility` | Local | Global (`--global`) |
 |---|---|---|
-| `claude-code` | `.claude/skills/<skill-name>/` | `~/.claude/skills/<skill-name>/` |
-| `cursor` | `.cursor/skills/<skill-name>/` | `~/.cursor/skills/<skill-name>/` |
-| `both` | Both local paths | Both global paths |
+| `claude-code` | `.claude/skills/<name>/` · `.agents/skills/<name>/` | `~/.claude/skills/<name>/` · `~/.agents/skills/<name>/` |
+| `cursor` | `.cursor/skills/<name>/` · `.agents/skills/<name>/` | `~/.cursor/skills/<name>/` · `~/.agents/skills/<name>/` |
+| `both` | All three local paths | All three global paths |
 
 Local paths are relative to the directory where you run `lorekeeper add`.
 

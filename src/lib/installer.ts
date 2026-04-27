@@ -40,15 +40,17 @@ function parseSkillMeta(skillMdContent: string): { meta: SkillMeta; warning?: st
 
 function getDestinations(compatibility: Compatibility, skillName: string, global: boolean): string[] {
   const base = global ? homedir() : process.cwd();
+  const agents = join(base, '.agents', 'skills', skillName);
   if (compatibility === 'claude-code') {
-    return [join(base, '.claude', 'skills', skillName)];
+    return [join(base, '.claude', 'skills', skillName), agents];
   }
   if (compatibility === 'cursor') {
-    return [join(base, '.cursor', 'skills', skillName)];
+    return [join(base, '.cursor', 'skills', skillName), agents];
   }
   return [
     join(base, '.claude', 'skills', skillName),
     join(base, '.cursor', 'skills', skillName),
+    agents,
   ];
 }
 
