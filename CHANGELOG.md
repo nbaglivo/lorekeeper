@@ -1,5 +1,13 @@
 # Changelog
 
+# [1.2.0](https://github.com/nbaglivo/lorekeeper/compare/v1.1.3...v1.2.0) (2026-04-27)
+
+
+### Features
+
+* add --global flag to install skills to home directory ([66352e6](https://github.com/nbaglivo/lorekeeper/commit/66352e608e68b42634adae1a3c9e149dab17a96c))
+* always install skills to .agents/skills in addition to tool destinations ([3f272f9](https://github.com/nbaglivo/lorekeeper/commit/3f272f9064f32e65a5dabcf66d86bfb1009c0072))
+
 ## [1.1.3](https://github.com/nbaglivo/lorekeeper/compare/v1.1.2...v1.1.3) (2026-04-26)
 
 ## [1.1.2](https://github.com/nbaglivo/lorekeeper/compare/v1.1.1...v1.1.2) (2026-04-26)
