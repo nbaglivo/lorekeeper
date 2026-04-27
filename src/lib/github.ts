@@ -24,6 +24,13 @@ export interface RemoteFile {
   content: string;
 }
 
+export interface SkillEntry {
+  name: string;
+  skillMdContent: string | null;
+  source: 'repo' | 'lore';
+  loreUrl?: string;
+}
+
 interface GhContentItem {
   type: 'file' | 'dir';
   name: string;
@@ -35,9 +42,37 @@ interface GhFileResponse {
   encoding: string;
 }
 
-export interface SkillEntry {
-  name: string;
-  skillMdContent: string | null;
+function decodeBase64Content(json: string): string {
+  const fileData: GhFileResponse = JSON.parse(json);
+  return Buffer.from(fileData.content.replace(/\s/g, ''), 'base64').toString('utf-8');
+}
+
+async function fetchFilesFromDir(repo: string, dirPath: string): Promise<RemoteFile[]> {
+  const { stdout: dirJson } = await execa('gh', [
+    'api',
+    `repos/${repo}/contents/${dirPath}`,
+  ]);
+
+  const items: GhContentItem[] = JSON.parse(dirJson);
+  const files: RemoteFile[] = [];
+
+  for (const item of items.filter((i) => i.type === 'file')) {
+    const { stdout: fileJson } = await execa('gh', [
+      'api',
+      `repos/${repo}/contents/${item.path}`,
+    ]);
+    files.push({ name: item.name, path: item.path, content: decodeBase64Content(fileJson) });
+  }
+
+  return files;
+}
+
+export async function fetchSkillFiles(repo: string, skillName: string): Promise<RemoteFile[]> {
+  return fetchFilesFromDir(repo, `skills/${skillName}`);
+}
+
+export async function fetchSkillFilesFromPath(repo: string, path: string): Promise<RemoteFile[]> {
+  return fetchFilesFromDir(repo, path);
 }
 
 export async function fetchSkillEntries(repo: string): Promise<SkillEntry[]> {
@@ -57,41 +92,26 @@ export async function fetchSkillEntries(repo: string): Promise<SkillEntry[]> {
         'api',
         `repos/${repo}/contents/${dir.path}/SKILL.md`,
       ]);
-      const fileData: GhFileResponse = JSON.parse(fileJson);
-      const content = Buffer.from(fileData.content.replace(/\s/g, ''), 'base64').toString('utf-8');
-      entries.push({ name: dir.name, skillMdContent: content });
+      entries.push({ name: dir.name, skillMdContent: decodeBase64Content(fileJson), source: 'repo' });
     } catch {
-      entries.push({ name: dir.name, skillMdContent: null });
+      entries.push({ name: dir.name, skillMdContent: null, source: 'repo' });
     }
   }
 
-  return entries;
-}
-
-export async function fetchSkillFiles(repo: string, skillName: string): Promise<RemoteFile[]> {
-  const dirPath = `skills/${skillName}`;
-
-  const { stdout: dirJson } = await execa('gh', [
-    'api',
-    `repos/${repo}/contents/${dirPath}`,
-  ]);
-
-  const items: GhContentItem[] = JSON.parse(dirJson);
-  const fileItems = items.filter((item) => item.type === 'file');
-
-  const files: RemoteFile[] = [];
-
-  for (const item of fileItems) {
-    const { stdout: fileJson } = await execa('gh', [
+  try {
+    const { stdout: loreJson } = await execa('gh', [
       'api',
-      `repos/${repo}/contents/${item.path}`,
+      `repos/${repo}/contents/skills/lore.json`,
     ]);
-
-    const fileData: GhFileResponse = JSON.parse(fileJson);
-    const content = Buffer.from(fileData.content.replace(/\s/g, ''), 'base64').toString('utf-8');
-
-    files.push({ name: item.name, path: item.path, content });
+    const loreConfig = JSON.parse(decodeBase64Content(loreJson)) as { skills?: Record<string, string> };
+    if (loreConfig.skills) {
+      for (const [name, url] of Object.entries(loreConfig.skills)) {
+        entries.push({ name, skillMdContent: null, source: 'lore', loreUrl: url });
+      }
+    }
+  } catch {
+    // lore.json is optional
   }
 
-  return files;
+  return entries;
 }

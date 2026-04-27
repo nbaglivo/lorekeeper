@@ -1,7 +1,23 @@
 import * as p from '@clack/prompts';
 import matter from 'gray-matter';
 import { readConfig } from '../lib/config.js';
-import { isGhInstalled, isGhAuthenticated, fetchSkillEntries } from '../lib/github.js';
+import { isGhInstalled, isGhAuthenticated, fetchSkillEntries, type SkillEntry } from '../lib/github.js';
+
+const truncate = (text: string, max = 60) =>
+  text.length > max ? `${text.slice(0, max).trimEnd()}…` : text;
+
+function formatRepoEntry(entry: SkillEntry): string {
+  if (!entry.skillMdContent) return entry.name;
+  const { data } = matter(entry.skillMdContent);
+  const name = data.name ?? entry.name;
+  const compatibility = `[${data.compatibility ?? 'both'}]`;
+  const description = data.description ? `\n  ${truncate(data.description)}` : '';
+  return `${name} ${compatibility}${description}`;
+}
+
+function formatLoreEntry(entry: SkillEntry): string {
+  return `${entry.name} [lore]\n  ${truncate(entry.loreUrl ?? '', 60)}`;
+}
 
 export async function listCommand(): Promise<void> {
   p.intro('Lorekeeper — Skills');
@@ -40,30 +56,33 @@ export async function listCommand(): Promise<void> {
     process.exit(1);
   }
 
-  spinner.stop(`Found ${entries.length} skill${entries.length !== 1 ? 's' : ''}`);
+  const repoEntries = entries.filter((e) => e.source === 'repo');
+  const loreEntries = entries.filter((e) => e.source === 'lore');
+  const total = entries.length;
 
-  if (entries.length === 0) {
+  spinner.stop(
+    `Found ${repoEntries.length} skill${repoEntries.length !== 1 ? 's' : ''}` +
+    (loreEntries.length > 0 ? `, ${loreEntries.length} via lore.json` : '')
+  );
+
+  if (total === 0) {
     p.log.info('No skills found in the repository.');
     p.outro('');
     return;
   }
 
-  const truncate = (text: string, max = 60) =>
-    text.length > max ? `${text.slice(0, max).trimEnd()}…` : text;
+  const sections: string[] = [];
 
-  const lines = entries.map((entry) => {
-    if (!entry.skillMdContent) {
-      return color.bold(entry.name);
-    }
-    const { data } = matter(entry.skillMdContent);
-    const name = data.name ?? entry.name;
-    const compatibility = `[${data.compatibility ?? 'both'}]`;
-    const description = data.description
-      ? `\n  ${truncate(data.description)}`
-      : '';
-    return `${name} ${compatibility}${description}`;
-  });
+  if (repoEntries.length > 0) {
+    sections.push(repoEntries.map(formatRepoEntry).join('\n\n'));
+  }
 
-  p.note(lines.join('\n\n'), config.repo);
+  if (loreEntries.length > 0) {
+    sections.push(
+      ['── via lore.json ' + '─'.repeat(20), loreEntries.map(formatLoreEntry).join('\n\n')].join('\n\n')
+    );
+  }
+
+  p.note(sections.join('\n\n'), config.repo);
   p.outro('Run `lorekeeper add <skill-name>` to install a skill.');
 }

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { homedir } from 'os';
-import { installSkill } from './installer.js';
+import { installSkill, validateRemoteSkillMeta } from './installer.js';
 import type { RemoteFile } from './github.js';
 
 vi.mock('fs/promises', () => ({
@@ -161,6 +161,36 @@ describe('installSkill', () => {
       const { warning } = await installSkill('test-skill', skillFile('cursor'));
 
       expect(warning).toBeUndefined();
+    });
+  });
+
+  describe('validateRemoteSkillMeta', () => {
+    it('passes when name and description are both present', () => {
+      expect(() => validateRemoteSkillMeta(skillFile('claude-code'))).not.toThrow();
+    });
+
+    it('throws when SKILL.md is missing', () => {
+      expect(() =>
+        validateRemoteSkillMeta([{ name: 'other.md', path: 'p', content: '' }])
+      ).toThrow('SKILL.md not found');
+    });
+
+    it('throws when name is missing', () => {
+      const files: RemoteFile[] = [{
+        name: 'SKILL.md',
+        path: 'skills/x/SKILL.md',
+        content: '---\ndescription: A description\ncompatibility: both\n---\n',
+      }];
+      expect(() => validateRemoteSkillMeta(files)).toThrow('"name"');
+    });
+
+    it('throws when description is missing', () => {
+      const files: RemoteFile[] = [{
+        name: 'SKILL.md',
+        path: 'skills/x/SKILL.md',
+        content: '---\nname: my-skill\ncompatibility: both\n---\n',
+      }];
+      expect(() => validateRemoteSkillMeta(files)).toThrow('"description"');
     });
   });
 

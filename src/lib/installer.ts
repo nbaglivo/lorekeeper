@@ -54,6 +54,20 @@ function getDestinations(compatibility: Compatibility, skillName: string, global
   ];
 }
 
+export function validateRemoteSkillMeta(files: RemoteFile[]): void {
+  const skillMd = files.find((f) => f.name === 'SKILL.md');
+  if (!skillMd) {
+    throw new Error('SKILL.md not found in the remote skill');
+  }
+  const { data } = matter(skillMd.content);
+  if (!data.name) {
+    throw new Error('Remote SKILL.md is missing the required "name" field');
+  }
+  if (!data.description) {
+    throw new Error('Remote SKILL.md is missing the required "description" field');
+  }
+}
+
 export async function installSkill(
   skillName: string,
   files: RemoteFile[],
