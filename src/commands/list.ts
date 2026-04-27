@@ -1,7 +1,7 @@
 import * as p from '@clack/prompts';
 import matter from 'gray-matter';
-import { readConfig } from '../lib/config.js';
-import { isGhInstalled, isGhAuthenticated, fetchSkillEntries, type SkillEntry } from '../lib/github.js';
+import { assertPreflight } from '../lib/preflight.js';
+import { fetchSkillEntries, type SkillEntry } from '../lib/github.js';
 
 const truncate = (text: string, max = 60) =>
   text.length > max ? `${text.slice(0, max).trimEnd()}…` : text;
@@ -16,27 +16,13 @@ function formatRepoEntry(entry: SkillEntry): string {
 }
 
 function formatLoreEntry(entry: SkillEntry): string {
-  return `${entry.name} [lore]\n  ${truncate(entry.loreUrl ?? '', 60)}`;
+  return `${entry.name} [lore-file]\n  ${truncate(entry.loreUrl ?? '', 60)}`;
 }
 
 export async function listCommand(): Promise<void> {
   p.intro('Lorekeeper — Skills');
 
-  const config = await readConfig();
-  if (!config) {
-    p.log.error('No config found. Run `lorekeeper config` first.');
-    process.exit(1);
-  }
-
-  if (!(await isGhInstalled())) {
-    p.log.error('`gh` CLI is not installed. Get it at https://cli.github.com');
-    process.exit(1);
-  }
-
-  if (!(await isGhAuthenticated())) {
-    p.log.error('Not authenticated with GitHub. Run `gh auth login` first.');
-    process.exit(1);
-  }
+  const config = await assertPreflight();
 
   const spinner = p.spinner();
   spinner.start(`Fetching skills from ${config.repo}`);
@@ -62,7 +48,7 @@ export async function listCommand(): Promise<void> {
 
   spinner.stop(
     `Found ${repoEntries.length} skill${repoEntries.length !== 1 ? 's' : ''}` +
-    (loreEntries.length > 0 ? `, ${loreEntries.length} via lore.json` : '')
+    (loreEntries.length > 0 ? `, ${loreEntries.length} via lore-file` : '')
   );
 
   if (total === 0) {
@@ -79,7 +65,7 @@ export async function listCommand(): Promise<void> {
 
   if (loreEntries.length > 0) {
     sections.push(
-      ['── via lore.json ' + '─'.repeat(20), loreEntries.map(formatLoreEntry).join('\n\n')].join('\n\n')
+      ['── via lore-file ' + '─'.repeat(20), loreEntries.map(formatLoreEntry).join('\n\n')].join('\n\n')
     );
   }
 

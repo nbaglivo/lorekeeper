@@ -1,6 +1,7 @@
 import { execa } from 'execa';
 
 export interface LoreConfig {
+  // key is the skill name, value is the URL to the skill repository
   skills: Record<string, string>;
 }
 

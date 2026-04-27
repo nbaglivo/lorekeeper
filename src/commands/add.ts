@@ -1,6 +1,6 @@
 import * as p from '@clack/prompts';
-import { readConfig } from '../lib/config.js';
-import { isGhInstalled, isGhAuthenticated, fetchSkillFiles, fetchSkillFilesFromPath, type RemoteFile } from '../lib/github.js';
+import { assertPreflight } from '../lib/preflight.js';
+import { fetchSkillFiles, fetchSkillFilesFromPath, type RemoteFile } from '../lib/github.js';
 import { installSkill, validateRemoteSkillMeta } from '../lib/installer.js';
 import { fetchLoreConfig, parseGitHubSkillUrl } from '../lib/lore.js';
 
@@ -13,21 +13,7 @@ function isNotFound(err: unknown): boolean {
 export async function addCommand(skillName: string, options: { global?: boolean } = {}): Promise<void> {
   p.intro(`Lorekeeper — add "${skillName}"${options.global ? ' (global)' : ''}`);
 
-  const config = await readConfig();
-  if (!config) {
-    p.log.error('No config found. Run `lorekeeper config` first.');
-    process.exit(1);
-  }
-
-  if (!(await isGhInstalled())) {
-    p.log.error('`gh` CLI is not installed. Get it at https://cli.github.com');
-    process.exit(1);
-  }
-
-  if (!(await isGhAuthenticated())) {
-    p.log.error('Not authenticated with GitHub. Run `gh auth login` first.');
-    process.exit(1);
-  }
+  const config = await assertPreflight();
 
   const spinner = p.spinner();
   spinner.start(`Fetching "${skillName}" from ${config.repo}`);
